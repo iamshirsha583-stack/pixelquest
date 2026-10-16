@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PixelQuest - 2D Pixel-Art Platformer & Level Editor</title>
+  <meta name="description"
+    content="PixelQuest: A retro 2D pixel-art platformer and interactive level editor built with HTML5 Canvas and JavaScript.">
+
+  <!-- Google Fonts for Retro Arcade & Modern UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Press+Start+2P&display=swap"
+    rel="stylesheet">
+
+  <!-- Inline SVG Favicon & Fallback to resolve 404 errors -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%AE%3C/text%3E%3C/svg%3E">
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+  <div class="app-layout">
+    <!-- Header Navigation -->
+    <header class="app-header">
+      <div class="header-branding">
+        <div class="logo-icon" aria-hidden="true">👾</div>
+        <div class="title-group">
+          <h1 class="game-title">PixelQuest</h1>
+          <span class="game-subtitle">2D Pixel Platformer Engine</span>
+        </div>
+      </div>
+
+      <div class="header-badges">
+        <div class="status-badge" id="mode-badge" role="button" tabindex="0" title="Click or press Tab to switch mode (Play/Edit)">
+          <span class="status-dot"></span>
+          <span id="mode-text">EDITOR MODE</span>
+        </div>
+        <div class="info-badge">
+          <span class="badge-label">Canvas:</span>
+          <span class="badge-value">800×480</span>
+        </div>
+        <div class="info-badge">
+          <span class="badge-label">Grid:</span>
+          <span class="badge-value">25×15 (32px)</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Side Control Toolbar -->
+      <aside class="control-panel glass-panel" id="side-toolbar" aria-label="Control Toolbar">
+
+        <!-- Mode Switcher -->
+        <section class="panel-section">
+          <h2 class="section-title">Mode Selection</h2>
+          <div class="mode-toggle-group">
+            <button type="button" class="btn-mode active" id="btn-mode-editor" data-mode="editor"
+              title="Edit tiles and level layout (Hotkey: Tab)">
+              <span class="btn-icon">🛠️</span>
+              <span class="btn-label">Level Editor</span>
+            </button>
+            <button type="button" class="btn-mode" id="btn-mode-play" data-mode="play"
+              title="Test play the platformer (Hotkey: Tab)">
+              <span class="btn-icon">🎮</span>
+              <span class="btn-label">Play Mode</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Tile Painting Tools -->
+        <section class="panel-section" id="tools-section">
+          <div class="section-header">
+            <h2 class="section-title">Tile Tools</h2>
+            <span class="section-hint">Click or Drag</span>
+          </div>
+
+          <div class="tile-palette" role="radiogroup" aria-label="Tile Palette">
+            <!-- Ground Tool (1) -->
+            <button type="button" class="tile-tool-btn active" id="tool-ground" data-tool="ground" role="radio"
+              aria-checked="true" title="Solid terrain blocks (1)">
+              <div class="tile-swatch swatch-ground">
+                <div class="pixel-block"></div>
+              </div>
+              <div class="tool-meta">
+                <span class="tool-name">Ground</span>
+                <span class="tool-key">1</span>
+              </div>
+            </button>
+
+            <!-- Platform Tool (2) -->
+            <button type="button" class="tile-tool-btn" id="tool-platform" data-tool="platform" role="radio"
+              aria-checked="false" title="Jump-through one-way platforms (2)">
+              <div class="tile-swatch swatch-platform">
+                <div class="pixel-line"></div>
+              </div>
+              <div class="tool-meta">
+                <span class="tool-name">Platform</span>
+                <span class="tool-key">2</span>
+              </div>
+            </button>
+
+            <!-- Hazard/Spike Tool (3) -->
+            <button type="button" class="tile-tool-btn" id="tool-spike" data-tool="spike" role="radio"
+              aria-checked="false" title="Lethal hazard spikes (3)">
+              <div class="tile-swatch swatch-spike">
+                <div class="pixel-spike"></div>
+              </div>
+              <div class="tool-meta">
+                <span class="tool-name">Spike</span>
+                <span class="tool-key">3</span>
+              </div>
+            </button>
+
+            <!-- Coin Tool (4) -->
+            <button type="button" class="tile-tool-btn" id="tool-coin" data-tool="coin" role="radio"
+              aria-checked="false" title="Collectible gold coin (4)">
+              <div class="tile-swatch swatch-coin">
+                <div class="pixel-coin"></div>
+              </div>
+              <div class="tool-meta">
+                <span class="tool-name">Coin</span>
+                <span class="tool-key">4</span>
+              </div>
+            </button>
+
+            <!-- Player Start Tool (5) -->
+            <button type="button" class="tile-tool-btn" id="tool-player" data-tool="player" role="radio"
+              aria-checked="false" title="Set hero respawn location (5)">
+              <div class="tile-swatch swatch-player">
+                <div class="pixel-hero"></div>
+              </div>
+              <div class="tool-meta">
+                <span class="tool-name">Player Start</span>
+                <span class="tool-key">5</span>
+              </div>
+            </button>
+
+            <!-- Eraser Tool (6) -->
+            <button type="button" class="tile-tool-btn" id="tool-eraser" data-tool="eraser" role="radio"
+              aria-checked="false" title="Erase tile (Right Click / 6)">
+              <div class="tile-swatch swatch-eraser">
+                <div class="pixel-eraser">✕</div>
+              </div>
+              <div class="tool-meta">
+                <span class="tool-name">Eraser</span>
+                <span class="tool-key">6</span>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- View Options -->
+        <section class="panel-section">
+          <h2 class="section-title">Editor View</h2>
+          <div class="toggle-row">
+            <label class="toggle-label" for="toggle-grid">
+              <span>Show Grid Lines</span>
+              <span class="key-hint">[G]</span>
+            </label>
+            <input type="checkbox" id="toggle-grid" checked>
+          </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <section class="panel-section">
+          <h2 class="section-title">Level Actions</h2>
+          <div class="action-btn-group">
+            <button type="button" class="btn-action btn-danger" id="btn-reset-level" title="Reset to default level preset">
+              <span class="btn-icon">🔄</span>
+              <span>Reset Level</span>
+            </button>
+
+            <button type="button" class="btn-action btn-primary" id="btn-export-json" title="Export level to JSON file">
+              <span class="btn-icon">💾</span>
+              <span>Export JSON</span>
+            </button>
+
+            <button type="button" class="btn-action btn-secondary" id="btn-import-trigger" title="Import level from JSON file">
+              <span class="btn-icon">📁</span>
+              <span>Import JSON</span>
+            </button>
+            <!-- Hidden file input for level JSON upload -->
+            <input type="file" id="import-file-input" accept=".json" style="display: none;">
+          </div>
+        </section>
+
+        <!-- Keyboard Controls Help Guide -->
+        <section class="panel-section panel-help">
+          <h2 class="section-title">Hotkeys & Tips</h2>
+          <ul class="help-list">
+            <li><kbd>Tab</kbd> Toggle Play / Editor mode</li>
+            <li><kbd>1</kbd> - <kbd>6</kbd> Select painting tool</li>
+            <li><kbd>LMB</kbd> Paint tile / <kbd>RMB</kbd> Erase tile</li>
+            <li><kbd>G</kbd> Toggle grid overlay</li>
+            <li><kbd>A</kbd>/<kbd>D</kbd> or <kbd>←</kbd>/<kbd>→</kbd> Move (Play mode)</li>
+            <li><kbd>Space</kbd> or <kbd>W</kbd> Jump (Play mode)</li>
+            <li><kbd>M</kbd> Toggle 8-bit sound effects</li>
+            <li><kbd>R</kbd> Quick restart run (Play mode)</li>
+          </ul>
+        </section>
+      </aside>
+
+      <!-- Viewport & Canvas Area -->
+      <section class="viewport-container" aria-label="Game Viewport">
+        <!-- Canvas Bezel / Frame -->
+        <div class="canvas-arcade-frame glass-panel">
+          <!-- Canvas Top Info Bar -->
+          <div class="viewport-hud">
+            <div class="hud-left">
+              <span class="hud-tag">MAP: LEVEL 01</span>
+              <span class="hud-coords" id="hud-coordinates">Tile: X: 0, Y: 0</span>
+            </div>
+            <div class="hud-right">
+              <span class="hud-tool-indicator" id="hud-active-tool">Tool: Solid Ground</span>
+              <span class="hud-fps" id="hud-fps">60 FPS</span>
+            </div>
+          </div>
+
+          <!-- Canvas Element -->
+          <div class="canvas-wrapper">
+            <canvas id="game-canvas" width="800" height="480"></canvas>
+
+            <!-- CRT Scanline Overlay -->
+            <div class="crt-overlay" aria-hidden="true"></div>
+
+            <!-- Retro In-Canvas HUD Overlay -->
+            <div class="retro-canvas-hud" id="retro-canvas-hud" aria-label="Game HUD">
+              <!-- Score Box -->
+              <div class="hud-item hud-score-box">
+                <span class="hud-item-label">SCORE</span>
+                <span class="hud-item-value glow-score" id="hud-score-val">000000</span>
+              </div>
+
+              <!-- Lives Box -->
+              <div class="hud-item hud-lives-box">
+                <span class="hud-item-label">LIVES</span>
+                <div class="hud-lives-container" id="hud-lives-container" aria-label="3 Lives">
+                  <span class="heart-icon active">❤️</span>
+                  <span class="heart-icon active">❤️</span>
+                  <span class="heart-icon active">❤️</span>
+                </div>
+              </div>
+
+              <!-- Coins Counter -->
+              <div class="hud-item hud-coins-box">
+                <span class="hud-item-label">COINS</span>
+                <div class="hud-coins-display">
+                  <span class="coin-mini-icon">🪙</span>
+                  <span class="hud-item-value" id="hud-coins-val">0/0</span>
+                </div>
+              </div>
+
+              <!-- Mode Status Pill -->
+              <div class="hud-item hud-mode-box">
+                <span class="hud-mode-pill status-editor" id="hud-mode-pill">EDITOR MODE</span>
+              </div>
+
+              <!-- Sound Toggle Action -->
+              <div class="hud-actions-box">
+                <button type="button" class="hud-audio-btn" id="hud-audio-btn" title="Toggle Sound (M)"
+                  aria-label="Toggle Sound">
+                  <span id="hud-audio-icon">🔊</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Game Over Overlay Modal -->
+            <div class="canvas-modal-overlay" id="game-over-screen" style="display: none;" role="dialog"
+              aria-modal="true" aria-label="Game Over">
+              <div class="arcade-modal-card death-card">
+                <div class="modal-arcade-badge badge-danger">STATUS: DEFEATED</div>
+                <h2 class="modal-title modal-danger-title">GAME OVER</h2>
+                <div class="modal-stats-grid">
+                  <div class="stat-cell">
+                    <span class="stat-lbl">FINAL SCORE</span>
+                    <span class="stat-num glow-amber" id="go-final-score">000000</span>
+                  </div>
+                  <div class="stat-cell">
+                    <span class="stat-lbl">COINS FOUND</span>
+                    <span class="stat-num glow-cyan" id="go-coins-collected">0 / 0</span>
+                  </div>
+                </div>
+                <p class="modal-hint">Spikes proved too lethal! Hit Space to restart or return to editor.</p>
+                <div class="modal-actions">
+                  <button type="button" class="btn-modal-action btn-danger-action" id="btn-go-retry">
+                    <span class="btn-icon">🔄</span>
+                    <span>Retry Level [Space]</span>
+                  </button>
+                  <button type="button" class="btn-modal-action btn-edit-action" id="btn-go-editor">
+                    <span class="btn-icon">🛠️</span>
+                    <span>Edit Level</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Victory Overlay Modal -->
+            <div class="canvas-modal-overlay" id="victory-screen" style="display: none;" role="dialog" aria-modal="true"
+              aria-label="Victory">
+              <div class="arcade-modal-card victory-card">
+                <div class="modal-arcade-badge badge-success">STAGE COMPLETE</div>
+                <h2 class="modal-title modal-victory-title">VICTORY!</h2>
+                <div class="victory-stars" aria-hidden="true">⭐⭐⭐</div>
+                <div class="modal-stats-grid">
+                  <div class="stat-cell">
+                    <span class="stat-lbl">FINAL SCORE</span>
+                    <span class="stat-num glow-gold" id="vic-final-score">000000</span>
+                  </div>
+                  <div class="stat-cell">
+                    <span class="stat-lbl">COINS</span>
+                    <span class="stat-num glow-green" id="vic-coins-collected">ALL GATHERED!</span>
+                  </div>
+                </div>
+                <p class="modal-hint">All coins gathered with true arcade mastery!</p>
+                <div class="modal-actions">
+                  <button type="button" class="btn-modal-action btn-success-action" id="btn-vic-replay">
+                    <span class="btn-icon">🎮</span>
+                    <span>Play Again [Space]</span>
+                  </button>
+                  <button type="button" class="btn-modal-action btn-edit-action" id="btn-vic-editor">
+                    <span class="btn-icon">🛠️</span>
+                    <span>Edit Level</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- In-game Notification Banner / Toast -->
+            <div class="game-toast" id="game-toast" aria-live="polite"></div>
+          </div>
+
+          <!-- Canvas Bottom Controls/Stats Bar -->
+          <div class="viewport-footer">
+            <div class="status-summary" id="status-summary">
+              Ready. Left click on canvas to paint, right click to erase.
+            </div>
+            <div class="editor-quick-links">
+              <button type="button" class="quick-btn" id="btn-clear-canvas" title="Clear all tiles">Clear Grid</button>
+              <button type="button" class="quick-btn" id="btn-demo-level" title="Load sample demo layout">Load
+                Preset</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+      <span>PixelQuest &copy; 2026 &bull; Vanilla HTML5 Canvas Engine &bull; 800×480 Native Pixel Art &bull; 8-Bit Web
+        Audio API</span>
+    </footer>
+  </div>
+
+  <!-- Scripts in strict dependency order -->
+  <script src="js/Audio.js"></script>
+  <script src="js/Input.js"></script>
+  <script src="js/Physics.js"></script>
+  <script src="js/Player.js"></script>
+  <script src="js/Level.js"></script>
+  <script src="js/Editor.js"></script>
+  <script src="js/GameState.js"></script>
+  <script src="js/Engine.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>
